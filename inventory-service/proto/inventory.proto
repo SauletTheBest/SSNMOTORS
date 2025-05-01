@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "internal/pb";
+
+service InventoryService {
+  rpc CreateProduct  (CreateProductRequest)  returns (ProductResponse);
+  rpc GetProduct     (GetProductRequest)     returns (ProductResponse);
+  rpc UpdateProduct  (UpdateProductRequest)  returns (ProductResponse);
+  rpc DeleteProduct  (DeleteProductRequest)  returns (DeleteProductResponse);
+  rpc ListProducts   (ListProductsRequest)   returns (ListProductsResponse);
+}
+
+message Product {
+  string id          = 1;
+  string name        = 2;
+  string description = 3;
+  string category    = 4;
+  int32  stock       = 5;
+  double price       = 6;
+}
+
+// Create
+message CreateProductRequest {
+  string name        = 1;
+  string description = 2;
+  string category    = 3;
+  int32  stock       = 4;
+  double price       = 5;
+}
+message ProductResponse {
+  Product product = 1;
+}
+
+// Get
+message GetProductRequest {
+  string id = 1;
+}
+
+// Update — все поля обязательны
+message UpdateProductRequest {
+  string id          = 1;
+  string name        = 2;
+  string description = 3;
+  string category    = 4;
+  int32  stock       = 5;
+  double price       = 6;
+}
+
+// Delete
+message DeleteProductRequest {
+  string id = 1;
+}
+message DeleteProductResponse {
+  string message = 1;
+}
+
+// List (фильтр по категории + пагинация)
+message ListProductsRequest {
+  string category = 1;
+  int32  page     = 2;
+  int32  limit    = 3;
+}
+message ListProductsResponse {
+  repeated Product products = 1;
+}

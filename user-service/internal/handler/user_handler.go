@@ -1,0 +1,88 @@
+// internal/handler/user_handler.go
+package handler
+
+import (
+	"context"
+	"regexp"
+
+	"user-service/internal/model"
+	pb "user-service/internal/pb"
+	"user-service/internal/usecase"
+
+	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
+var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[A-Za-z]{2,}$`)
+
+type UserHandler struct {
+    pb.UnimplementedUserServiceServer
+    uc *usecase.UserUsecase
+}
+
+func NewUserHandler(uc *usecase.UserUsecase) *UserHandler {
+    return &UserHandler{uc: uc}
+}
+
+func (h *UserHandler) RegisterUser(ctx context.Context, req *pb.UserRequest) (*pb.UserResponse, error) {
+    if req.Username == "" {
+        return nil, status.Error(codes.InvalidArgument, "username is required")
+    }
+    if req.Password == "" {
+        return nil, status.Error(codes.InvalidArgument, "password is required")
+    }
+    if req.Email == "" {
+        return nil, status.Error(codes.InvalidArgument, "email is required")
+    }
+    if !emailRegex.MatchString(req.Email) {
+        return nil, status.Error(codes.InvalidArgument, "invalid email format")
+    }
+    if len(req.Password) < 6 {
+        return nil, status.Error(codes.InvalidArgument, "password must be at least 6 characters")
+    }
+
+    user := &model.User{Username: req.Username, Password: req.Password, Email: req.Email}
+    id, err := h.uc.CreateUser(ctx, user)
+    if err != nil {
+        switch err.Error() {
+        case "username already exists":
+            return nil, status.Error(codes.AlreadyExists, "username already taken")
+        case "failed to hash password":
+            return nil, status.Error(codes.Internal, "could not secure password")
+        default:
+            return nil, status.Errorf(codes.Internal, "registration error: %v", err)
+        }
+    }
+    return &pb.UserResponse{Id: id, Message: "User registered"}, nil
+}
+
+func (h *UserHandler) AuthenticateUser(ctx context.Context, req *pb.AuthRequest) (*pb.AuthResponse, error) {
+    if req.Username == "" {
+        return nil, status.Error(codes.InvalidArgument, "username is required")
+    }
+    if req.Password == "" {
+        return nil, status.Error(codes.InvalidArgument, "password is required")
+    }
+    user, err := h.uc.GetUserByUsername(ctx, req.Username)
+    if err != nil {
+        return nil, status.Errorf(codes.NotFound, "user not found")
+    }
+    if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)) != nil {
+        return nil, status.Error(codes.Unauthenticated, "invalid credentials")
+    }
+    // TODO: generate real JWT instead of mock
+    token := "mock-jwt-token-for-" + user.ID
+    return &pb.AuthResponse{Token: token, Message: "Authenticated"}, nil
+}
+
+func (h *UserHandler) GetUserProfile(ctx context.Context, req *pb.UserID) (*pb.UserProfile, error) {
+    if req.Id == "" {
+        return nil, status.Error(codes.InvalidArgument, "id is required")
+    }
+    user, err := h.uc.GetUserByID(ctx, req.Id)
+    if err != nil {
+        return nil, status.Errorf(codes.NotFound, "user not found")
+    }
+    return &pb.UserProfile{Id: user.ID, Username: user.Username, Email: user.Email}, nil
+}
