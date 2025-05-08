@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "../internal/pb/";
+
+service OrderService {
+  rpc CreateOrder (CreateOrderRequest) returns (OrderResponse);
+  rpc GetOrderById (OrderIdRequest) returns (OrderResponse);
+  rpc ListOrdersByUser (UserIdRequest) returns (OrdersResponse);
+  rpc CancelOrder (OrderIdRequest) returns (CancelOrderResponse);
+}
+
+message CreateOrderRequest {
+  string user_id = 1;
+  string car_id = 2;
+  int32 quantity = 3;
+}
+
+message OrderIdRequest {
+  string order_id = 1;
+}
+
+message UserIdRequest {
+  string user_id = 1;
+}
+
+message OrderResponse {
+  string order_id = 1;
+  string user_id = 2;
+  string car_id = 3;
+  int32 quantity = 4;
+  string status = 5;
+  string created_at = 6;
+}
+
+message OrdersResponse {
+  repeated OrderResponse orders = 1;
+}
+
+message CancelOrderResponse {
+  string order_id = 1;
+  string message = 2;
+}
