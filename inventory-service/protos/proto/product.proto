@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package inventory;
+
+option go_package = "./gen";
+
+service InventoryService {
+  rpc CreateProduct(CreateProductRequest) returns (ProductResponse);
+  rpc GetProduct(GetProductRequest) returns (ProductResponse);
+  rpc UpdateProduct(UpdateProductRequest) returns (ProductResponse);
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
+  rpc DeleteProduct(DeleteProductRequest) returns (DeleteProductResponse);
+}
+
+message CreateProductRequest {
+  string name = 1;
+  string category = 2;
+  double price = 3;
+  uint64 stock = 4;
+}
+
+message GetProductRequest {
+  uint64 product_id = 1;
+}
+
+message UpdateProductRequest {
+  uint64 product_id = 1;
+  optional string name = 2;
+  optional string category = 3;
+  optional double price = 4;
+  optional uint64 stock = 5;
+}
+
+message ListProductsRequest {
+  optional string name = 1;
+  optional string category = 2;
+  optional double price = 3;
+  optional uint64 stock = 4;
+  int64 page = 5;
+  int64 limit = 6;
+}
+
+message DeleteProductRequest {
+  uint64 product_id = 1;
+}
+
+message ProductResponse {
+  uint64 product_id = 1;
+  string name = 2;
+  string category = 3;
+  double price = 4;
+  uint64 stock = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+message ListProductsResponse {
+  repeated ProductResponse products = 1;
+  int64 total = 2;
+}
+
+message DeleteProductResponse {
+  string message = 1;
+}
