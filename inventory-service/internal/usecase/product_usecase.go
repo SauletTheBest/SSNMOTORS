@@ -71,3 +71,8 @@ func (u *ProductUsecase) ListProducts(ctx context.Context, category string, page
     }
     return u.repo.List(ctx, category, page, limit)
 }
+
+func (u *ProductUsecase) DecreaseStock(ctx context.Context, productID string, quantity int32) error {
+    return u.repo.DecreaseStock(ctx, productID, quantity)
+}
+

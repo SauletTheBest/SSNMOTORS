@@ -2,37 +2,50 @@ package handler
 
 import (
 	"context"
+	"log"
+
 	"order-service/internal/model"
 	"order-service/internal/pb"
+	"order-service/internal/queue"
 	"order-service/internal/usecase"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type OrderHandler struct {
 	pb.UnimplementedOrderServiceServer
-	usecase *usecase.OrderUsecase
+	usecase   *usecase.OrderUsecase
+	publisher queue.Publisher
 }
 
-func NewOrderHandler(u *usecase.OrderUsecase) *OrderHandler {
-	return &OrderHandler{usecase: u}
+func NewOrderHandler(u *usecase.OrderUsecase, p queue.Publisher) *OrderHandler {
+	return &OrderHandler{
+		usecase:   u,
+		publisher: p,
+	}
 }
 
 func (h *OrderHandler) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*pb.CreateOrderResponse, error) {
+	// Log the incoming request for debugging
+	log.Printf("Received CreateOrder request: user_id=%s, total=%f, items=%+v", req.UserId, req.Total, req.Items)
+
 	order := &model.Order{
 		UserID: req.UserId,
 		Total:  req.Total,
 	}
-	for _, p := range req.Products {
+	for _, item := range req.Items {
 		order.Products = append(order.Products, model.Product{
-			ProductID: p.ProductId,
-			Quantity:  int(p.Quantity),
+			ProductID: item.ProductId, // (e.g., 68016c6489e4500884e8382f)
+			Quantity:  int(item.Quantity),
 		})
 	}
+
 	id, err := h.usecase.CreateOrder(ctx, order)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+
 	return &pb.CreateOrderResponse{
 		Id:      id,
 		Message: "Order created successfully",
@@ -51,7 +64,7 @@ func (h *OrderHandler) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*
 		Status: order.Status,
 	}
 	for _, p := range order.Products {
-		resp.Products = append(resp.Products, &pb.Product{
+		resp.Items = append(resp.Items, &pb.OrderItem{
 			ProductId: p.ProductID,
 			Quantity:  int32(p.Quantity),
 		})
@@ -84,7 +97,7 @@ func (h *OrderHandler) ListUserOrders(ctx context.Context, req *pb.ListUserOrder
 			Status: order.Status,
 		}
 		for _, p := range order.Products {
-			orderResp.Products = append(orderResp.Products, &pb.Product{
+			orderResp.Items = append(orderResp.Items, &pb.OrderItem{
 				ProductId: p.ProductID,
 				Quantity:  int32(p.Quantity),
 			})

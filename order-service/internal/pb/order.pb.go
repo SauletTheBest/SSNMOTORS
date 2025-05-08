@@ -21,7 +21,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type Product struct {
+type OrderItem struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ProductId     string                 `protobuf:"bytes,1,opt,name=product_id,json=productId,proto3" json:"product_id,omitempty"`
 	Quantity      int32                  `protobuf:"varint,2,opt,name=quantity,proto3" json:"quantity,omitempty"`
@@ -29,20 +29,20 @@ type Product struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Product) Reset() {
-	*x = Product{}
+func (x *OrderItem) Reset() {
+	*x = OrderItem{}
 	mi := &file_proto_order_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Product) String() string {
+func (x *OrderItem) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Product) ProtoMessage() {}
+func (*OrderItem) ProtoMessage() {}
 
-func (x *Product) ProtoReflect() protoreflect.Message {
+func (x *OrderItem) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_order_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -54,19 +54,19 @@ func (x *Product) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Product.ProtoReflect.Descriptor instead.
-func (*Product) Descriptor() ([]byte, []int) {
+// Deprecated: Use OrderItem.ProtoReflect.Descriptor instead.
+func (*OrderItem) Descriptor() ([]byte, []int) {
 	return file_proto_order_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Product) GetProductId() string {
+func (x *OrderItem) GetProductId() string {
 	if x != nil {
 		return x.ProductId
 	}
 	return ""
 }
 
-func (x *Product) GetQuantity() int32 {
+func (x *OrderItem) GetQuantity() int32 {
 	if x != nil {
 		return x.Quantity
 	}
@@ -76,7 +76,7 @@ func (x *Product) GetQuantity() int32 {
 type CreateOrderRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Products      []*Product             `protobuf:"bytes,2,rep,name=products,proto3" json:"products,omitempty"`
+	Items         []*OrderItem           `protobuf:"bytes,2,rep,name=items,proto3" json:"items,omitempty"`
 	Total         float64                `protobuf:"fixed64,3,opt,name=total,proto3" json:"total,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -119,9 +119,9 @@ func (x *CreateOrderRequest) GetUserId() string {
 	return ""
 }
 
-func (x *CreateOrderRequest) GetProducts() []*Product {
+func (x *CreateOrderRequest) GetItems() []*OrderItem {
 	if x != nil {
-		return x.Products
+		return x.Items
 	}
 	return nil
 }
@@ -233,7 +233,7 @@ type GetOrderResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Products      []*Product             `protobuf:"bytes,3,rep,name=products,proto3" json:"products,omitempty"`
+	Items         []*OrderItem           `protobuf:"bytes,3,rep,name=items,proto3" json:"items,omitempty"`
 	Total         float64                `protobuf:"fixed64,4,opt,name=total,proto3" json:"total,omitempty"`
 	Status        string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -284,9 +284,9 @@ func (x *GetOrderResponse) GetUserId() string {
 	return ""
 }
 
-func (x *GetOrderResponse) GetProducts() []*Product {
+func (x *GetOrderResponse) GetItems() []*OrderItem {
 	if x != nil {
-		return x.Products
+		return x.Items
 	}
 	return nil
 }
@@ -501,24 +501,24 @@ var File_proto_order_proto protoreflect.FileDescriptor
 
 const file_proto_order_proto_rawDesc = "" +
 	"\n" +
-	"\x11proto/order.proto\x12\x02pb\"D\n" +
-	"\aProduct\x12\x1d\n" +
+	"\x11proto/order.proto\x12\x02pb\"F\n" +
+	"\tOrderItem\x12\x1d\n" +
 	"\n" +
 	"product_id\x18\x01 \x01(\tR\tproductId\x12\x1a\n" +
-	"\bquantity\x18\x02 \x01(\x05R\bquantity\"l\n" +
+	"\bquantity\x18\x02 \x01(\x05R\bquantity\"h\n" +
 	"\x12CreateOrderRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12'\n" +
-	"\bproducts\x18\x02 \x03(\v2\v.pb.ProductR\bproducts\x12\x14\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12#\n" +
+	"\x05items\x18\x02 \x03(\v2\r.pb.OrderItemR\x05items\x12\x14\n" +
 	"\x05total\x18\x03 \x01(\x01R\x05total\"?\n" +
 	"\x13CreateOrderResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\"!\n" +
 	"\x0fGetOrderRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\x92\x01\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\x8e\x01\n" +
 	"\x10GetOrderResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\x12'\n" +
-	"\bproducts\x18\x03 \x03(\v2\v.pb.ProductR\bproducts\x12\x14\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x12#\n" +
+	"\x05items\x18\x03 \x03(\v2\r.pb.OrderItemR\x05items\x12\x14\n" +
 	"\x05total\x18\x04 \x01(\x01R\x05total\x12\x16\n" +
 	"\x06status\x18\x05 \x01(\tR\x06status\"B\n" +
 	"\x18UpdateOrderStatusRequest\x12\x0e\n" +
@@ -535,7 +535,7 @@ const file_proto_order_proto_rawDesc = "" +
 	"\vCreateOrder\x12\x16.pb.CreateOrderRequest\x1a\x17.pb.CreateOrderResponse\x125\n" +
 	"\bGetOrder\x12\x13.pb.GetOrderRequest\x1a\x14.pb.GetOrderResponse\x12P\n" +
 	"\x11UpdateOrderStatus\x12\x1c.pb.UpdateOrderStatusRequest\x1a\x1d.pb.UpdateOrderStatusResponse\x12G\n" +
-	"\x0eListUserOrders\x12\x19.pb.ListUserOrdersRequest\x1a\x1a.pb.ListUserOrdersResponseB\x0eZ\finternal/pb/b\x06proto3"
+	"\x0eListUserOrders\x12\x19.pb.ListUserOrdersRequest\x1a\x1a.pb.ListUserOrdersResponseB\rZ\vinternal/pbb\x06proto3"
 
 var (
 	file_proto_order_proto_rawDescOnce sync.Once
@@ -551,7 +551,7 @@ func file_proto_order_proto_rawDescGZIP() []byte {
 
 var file_proto_order_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_proto_order_proto_goTypes = []any{
-	(*Product)(nil),                   // 0: pb.Product
+	(*OrderItem)(nil),                 // 0: pb.OrderItem
 	(*CreateOrderRequest)(nil),        // 1: pb.CreateOrderRequest
 	(*CreateOrderResponse)(nil),       // 2: pb.CreateOrderResponse
 	(*GetOrderRequest)(nil),           // 3: pb.GetOrderRequest
@@ -562,8 +562,8 @@ var file_proto_order_proto_goTypes = []any{
 	(*ListUserOrdersResponse)(nil),    // 8: pb.ListUserOrdersResponse
 }
 var file_proto_order_proto_depIdxs = []int32{
-	0, // 0: pb.CreateOrderRequest.products:type_name -> pb.Product
-	0, // 1: pb.GetOrderResponse.products:type_name -> pb.Product
+	0, // 0: pb.CreateOrderRequest.items:type_name -> pb.OrderItem
+	0, // 1: pb.GetOrderResponse.items:type_name -> pb.OrderItem
 	4, // 2: pb.ListUserOrdersResponse.orders:type_name -> pb.GetOrderResponse
 	1, // 3: pb.OrderService.CreateOrder:input_type -> pb.CreateOrderRequest
 	3, // 4: pb.OrderService.GetOrder:input_type -> pb.GetOrderRequest

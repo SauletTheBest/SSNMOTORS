@@ -1,60 +1,50 @@
 package middleware
 
 import (
-    "net/http"
-    "strings"
-    "time"
+	"net/http"
+	"strings"
 
-    "github.com/gin-gonic/gin"
-    "github.com/golang-jwt/jwt/v5"
+	"api-gateway/config"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
-// Секретный ключ для подписи JWT
-var jwtSecret = []byte("your-secret-key")
+// AuthMiddleware validates JWT tokens
+func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
+			c.Abort()
+			return
+		}
 
-// Claims определяет структуру токена
-type Claims struct {
-    UserID string `json:"user_id"`
-    jwt.RegisteredClaims
-}
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header"})
+			c.Abort()
+			return
+		}
 
-// AuthMiddleware проверяет JWT токен в заголовке Authorization
-func AuthMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        // Получаем заголовок Authorization
-        auth := c.GetHeader("Authorization")
-        if auth == "" || !strings.HasPrefix(auth, "Bearer ") {
-            c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing or invalid token"})
-            return
-        }
+		token, err := jwt.Parse(parts[1], func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, jwt.ErrSignatureInvalid
+			}
+			return []byte(cfg.JWTSecret), nil
+		})
 
-        // Извлекаем токен из заголовка
-        tokenStr := strings.TrimPrefix(auth, "Bearer ")
-        token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-            return jwtSecret, nil
-        })
+		if err != nil || !token.Valid {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+			c.Abort()
+			return
+		}
 
-        // Проверяем валидность токена
-        if err != nil || !token.Valid {
-            c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
-            return
-        }
+		// Extract user ID from token claims and store in context
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			c.Set("user_id", claims["sub"])
+		}
 
-        // Извлекаем данные пользователя из токена
-        claims := token.Claims.(*Claims)
-        c.Set("userID", claims.UserID)
-        c.Next()
-    }
-}
-
-// GenerateToken создает новый JWT токен для пользователя
-func GenerateToken(userID string) (string, error) {
-    claims := &Claims{
-        UserID: userID,
-        RegisteredClaims: jwt.RegisteredClaims{
-            ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)), // Токен действителен 24 часа
-        },
-    }
-    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-    return token.SignedString(jwtSecret)
+		c.Next()
+	}
 }

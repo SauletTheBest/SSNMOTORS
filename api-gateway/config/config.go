@@ -1,29 +1,53 @@
 package config
 
-import "os"
+import (
+	"errors"
+	"log"
+	"os"
 
-// Config содержит настройки подключения к микросервисам и HTTP-порт
+	"github.com/joho/godotenv"
+)
+
+// Config holds the application configuration
 type Config struct {
-    UserServiceAddr     string // Адрес user-service
-    InventoryServiceAddr string // Адрес inventory-service
-    OrderServiceAddr    string // Адрес order-service
-    HttpPort            string // Порт для HTTP-сервера
+	Port             string
+	InventoryService string
+	OrderService     string
+	UserService      string
+	JWTSecret        string
 }
 
-// Load загружает конфигурацию из переменных окружения или использует значения по умолчанию
-func Load() *Config {
-    return &Config{
-        UserServiceAddr:     getEnv("USER_SERVICE_ADDR", "localhost:5051"),
-        InventoryServiceAddr: getEnv("INVENTORY_SERVICE_ADDR", "localhost:5052"),
-        OrderServiceAddr:    getEnv("ORDER_SERVICE_ADDR", "localhost:5053"),
-        HttpPort:            getEnv("HTTP_PORT", ":8080"),
-    }
+// Load loads configuration from environment variables or .env file
+func Load() (*Config, error) {
+	// Try to load .env file, continue if not found
+	if err := godotenv.Load("../.env"); err != nil {
+		log.Println("No .env file found, using environment variables")
+	} else {
+		log.Println("Using configuration from .env file")
+	}
+
+	// Create config with values from environment
+	cfg := &Config{
+		Port:             getEnvWithDefault("PORT", "8080"),
+		InventoryService: getEnvWithDefault("INVENTORY_SERVICE", "localhost:50051"),
+		OrderService:     getEnvWithDefault("ORDER_SERVICE", "localhost:50052"),
+		UserService:      getEnvWithDefault("USER_SERVICE", "localhost:50053"),
+		JWTSecret:        os.Getenv("JWT_SECRET"),
+	}
+
+	// Validate JWT secret
+	if cfg.JWTSecret == "" {
+		return nil, errors.New("JWT_SECRET environment variable is required")
+	}
+
+	return cfg, nil
 }
 
-// getEnv возвращает значение переменной окружения или значение по умолчанию
-func getEnv(key, fallback string) string {
-    if value := os.Getenv(key); value != "" {
-        return value
-    }
-    return fallback
+// getEnvWithDefault retrieves an environment variable or returns a default value if not set
+func getEnvWithDefault(key, defaultValue string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	return value
 }

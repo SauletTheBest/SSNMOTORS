@@ -1,20 +1,19 @@
-// cmd/main.go
 package main
 
 import (
-    "fmt"
-    "log"
-    "net"
+	"fmt"
+	"log"
+	"net"
 
-    "user-service/config"
-    "user-service/internal/handler"
-    "user-service/internal/pb"
-    "user-service/internal/repository"
-    "user-service/internal/usecase"
+	"user-service/config"
+	"user-service/internal/handler"
+	"user-service/internal/pb"
+	"user-service/internal/repository"
+	"user-service/internal/usecase"
 
-    "go.mongodb.org/mongo-driver/mongo"
-    "go.mongodb.org/mongo-driver/mongo/options"
-    "google.golang.org/grpc"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -29,7 +28,7 @@ func main() {
     col := client.Database(cfg.MongoDBName).Collection("users")
     userRepo := repository.NewMongoUserRepository(col)
     userUC := usecase.NewUserUsecase(userRepo)
-    userHandler := handler.NewUserHandler(userUC)
+    userHandler := handler.NewUserHandler(userUC, cfg.JWTSecret) // Pass jwtSecret from config
 
     lis, err := net.Listen("tcp", ":"+cfg.Port)
     if err != nil {

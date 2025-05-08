@@ -13,6 +13,7 @@ type Config struct {
     MongoURI    string
     MongoDBName string
     Port        string
+    NATSURL     string
 }
 
 func Load() *Config {
@@ -27,6 +28,7 @@ func Load() *Config {
         MongoURI:    getEnv("MONGO_URI"),
         MongoDBName: getEnv("MONGO_DB"),
         Port:        getEnv("PORT"),
+        NATSURL:    getEnv("NATS_URL"),
     }
 }
 

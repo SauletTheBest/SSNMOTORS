@@ -2,46 +2,25 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus"
-	"strconv"
-	"time"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 )
 
-var (
-	httpRequestsTotal = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "http_requests_total",
-			Help: "Total number of HTTP requests",
-		},
-		[]string{"method", "path", "status"},
+// TelemetryMiddleware adds OpenTelemetry metrics
+func TelemetryMiddleware() gin.HandlerFunc {
+	meter := otel.Meter("api-gateway")
+	requestCounter, _ := meter.Int64Counter(
+		"http_requests_total",
+		metric.WithDescription("Total number of HTTP requests"),
 	)
 
-	httpRequestDuration = prometheus.NewHistogramVec(
-		prometheus.HistogramOpts{
-			Name:    "http_request_duration_seconds",
-			Help:    "Duration of HTTP requests",
-			Buckets: prometheus.DefBuckets,
-		},
-		[]string{"method", "path"},
-	)
-)
-
-func init() {
-	prometheus.MustRegister(httpRequestsTotal, httpRequestDuration)
-}
-
-func Metrics() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		start := time.Now()
-		path := c.Request.URL.Path
-		method := c.Request.Method
+		requestCounter.Add(c.Request.Context(), 1, metric.WithAttributes(
+			attribute.String("method", c.Request.Method),
+			attribute.String("path", c.Request.URL.Path),
+		))
 
 		c.Next()
-
-		status := c.Writer.Status()
-		duration := time.Since(start).Seconds()
-
-		httpRequestsTotal.WithLabelValues(method, path, strconv.Itoa(status)).Inc()
-		httpRequestDuration.WithLabelValues(method, path).Observe(duration)
 	}
 }

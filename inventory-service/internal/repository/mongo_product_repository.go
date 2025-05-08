@@ -1,19 +1,40 @@
 package repository
 
 import (
-    "context"
-    "errors"
-    "inventory-service/internal/model"
+	"context"
+	"errors"
+	"inventory-service/internal/model"
 
-    "go.mongodb.org/mongo-driver/bson"
-    "go.mongodb.org/mongo-driver/bson/primitive"
-    "go.mongodb.org/mongo-driver/mongo"
-    "go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type MongoProductRepository struct {
     coll *mongo.Collection
 }
+
+func (r *MongoProductRepository) DecreaseStock(ctx context.Context, productID string, quantity int32) error {
+    objID, err := primitive.ObjectIDFromHex(productID)
+    if err != nil {
+        return errors.New("invalid product ID")
+    }
+
+    filter := bson.M{"_id": objID, "stock": bson.M{"$gte": quantity}}
+    update := bson.M{"$inc": bson.M{"stock": -quantity}}
+
+    res, err := r.coll.UpdateOne(ctx, filter, update)
+    if err != nil {
+        return err
+    }
+    if res.MatchedCount == 0 {
+        return errors.New("not enough stock or product not found")
+    }
+
+    return nil
+}
+
 
 func NewMongoProductRepository(coll *mongo.Collection) *MongoProductRepository {
     // Убедимся, что есть уникальный индекс по name (опционально)
