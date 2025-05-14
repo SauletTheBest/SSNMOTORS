@@ -11,6 +11,7 @@ import (
 	"order-service/internal/queue"
 	"order-service/internal/repository"
 	"order-service/internal/usecase"
+	"order-service/internal/cache"
 
 	"github.com/nats-io/nats.go"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -39,9 +40,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("❌ Failed to create NATS publisher: %v", err)
 	}
+	// Redis
+	redisClient := cache.NewRedisClient()
 
 	orderRepo := repository.NewMongoOrderRepository(client.Database(cfg.MongoDBName).Collection("orders"))
-	orderUsecase := usecase.NewOrderUsecase(orderRepo, publisher) 
+	orderUsecase := usecase.NewOrderUsecase(orderRepo, publisher , redisClient) 
 
 	orderHandler := handler.NewOrderHandler(orderUsecase, publisher)
 

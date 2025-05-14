@@ -4,21 +4,27 @@ import (
 	"context"
 	"errors"
 	"log"
+	"time"
 
+	"encoding/json"
 	"order-service/internal/model"
 	"order-service/internal/queue"
 	"order-service/internal/repository"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type OrderUsecase struct {
 	repo      repository.OrderRepository
 	publisher queue.Publisher
+	cache     *redis.Client
 }
 
-func NewOrderUsecase(repo repository.OrderRepository, publisher queue.Publisher) *OrderUsecase {
+func NewOrderUsecase(repo repository.OrderRepository, publisher queue.Publisher, cache *redis.Client) *OrderUsecase {
 	return &OrderUsecase{
 		repo:      repo,
 		publisher: publisher,
+		cache:     cache,
 	}
 }
 
@@ -52,7 +58,7 @@ func (u *OrderUsecase) CreateOrder(ctx context.Context, order *model.Order) (str
 	err = u.publisher.PublishOrderCreated(ctx, order)
 	if err != nil {
 		log.Printf("[NATS] Failed to publish order.created event: %v", err)
-		
+
 		// Log the error but don't fail the request (fire-and-forget)
 	}
 
@@ -85,5 +91,37 @@ func (u *OrderUsecase) ListUserOrders(ctx context.Context, userID string) ([]*mo
 	if userID == "" {
 		return nil, errors.New("invalid user ID")
 	}
-	return u.repo.FindByUserID(ctx, userID)
+
+	// Проверяем кэш перед запросом в базу данных
+	cacheKey := "user_orders:" + userID
+	cachedOrders, err := u.cache.Get(ctx, cacheKey).Result()
+	if err == nil {
+		var orders []*model.Order
+		if err := json.Unmarshal([]byte(cachedOrders), &orders); err == nil {
+			log.Println("Orders from cache")
+			return orders, nil
+		}
+	}
+
+	// Если данных нет в кэше, запрашиваем из базы данных
+	orders, err := u.repo.FindByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Сохраняем результат в кэш
+	ordersJson, err := json.Marshal(orders)
+	if err != nil {
+		return nil, err
+	}
+
+	// Указываем TTL в 5 минут (300 секунд)
+
+	err = u.cache.Set(ctx, cacheKey, ordersJson, 5*time.Minute).Err()
+	if err != nil {
+		log.Println("Failed to cache orders:", err)
+	}
+
+	log.Println("Orders from mongo")
+	return orders, nil
 }

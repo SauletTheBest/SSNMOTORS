@@ -10,7 +10,7 @@ import (
 	"user-service/internal/pb"
 	"user-service/internal/repository"
 	"user-service/internal/usecase"
-
+    "user-service/internal/cache"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
@@ -27,7 +27,8 @@ func main() {
 
     col := client.Database(cfg.MongoDBName).Collection("users")
     userRepo := repository.NewMongoUserRepository(col)
-    userUC := usecase.NewUserUsecase(userRepo)
+    redisClient := cache.NewRedisClient()
+    userUC := usecase.NewUserUsecase(userRepo , redisClient) // Pass redisClient to usecase
     userHandler := handler.NewUserHandler(userUC, cfg.JWTSecret) // Pass jwtSecret from config
 
     lis, err := net.Listen("tcp", ":"+cfg.Port)

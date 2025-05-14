@@ -79,9 +79,9 @@ func (h *UserHandler) AuthenticateUser(ctx context.Context, req *pb.AuthRequest)
 
 	// Generate a real JWT
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.ID,                                // Subject (user ID)
-		"exp": time.Now().Add(time.Hour * 24).Unix(),  // Expires in 24 hours
-		"iat": time.Now().Unix(),                      // Issued at
+		"sub": user.ID,                               // Subject (user ID)
+		"exp": time.Now().Add(time.Hour * 24).Unix(), // Expires in 24 hours
+		"iat": time.Now().Unix(),                     // Issued at
 	})
 
 	// Sign the token with the secret
@@ -97,9 +97,16 @@ func (h *UserHandler) GetUserProfile(ctx context.Context, req *pb.UserID) (*pb.U
 	if req.Id == "" {
 		return nil, status.Error(codes.InvalidArgument, "id is required")
 	}
+
+	// Используем GetUserByID с кэшированием
 	user, err := h.uc.GetUserByID(ctx, req.Id)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "user not found")
 	}
-	return &pb.UserProfile{Id: user.ID, Username: user.Username, Email: user.Email}, nil
+
+	return &pb.UserProfile{
+		Id:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+	}, nil
 }

@@ -84,10 +84,13 @@ func (h *OrderHandler) UpdateOrderStatus(ctx context.Context, req *pb.UpdateOrde
 }
 
 func (h *OrderHandler) ListUserOrders(ctx context.Context, req *pb.ListUserOrdersRequest) (*pb.ListUserOrdersResponse, error) {
+	// Получаем заказы с кэшированием
 	orders, err := h.usecase.ListUserOrders(ctx, req.UserId)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+
+	// Преобразуем данные в ответ
 	resp := &pb.ListUserOrdersResponse{}
 	for _, order := range orders {
 		orderResp := &pb.GetOrderResponse{
@@ -104,5 +107,6 @@ func (h *OrderHandler) ListUserOrders(ctx context.Context, req *pb.ListUserOrder
 		}
 		resp.Orders = append(resp.Orders, orderResp)
 	}
+
 	return resp, nil
 }
