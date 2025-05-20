@@ -56,14 +56,13 @@ func (u *UserUsecase) GetUserByID(ctx context.Context, id string) (*model.User, 
 	// If not found in cache, query MongoDB
 	user, err := u.repo.FindByID(ctx, id)
 	if err != nil {
-		log.Println("User from mongo")
 		return nil, err
 	}
 
 	// Cache the result in Redis
 	data, _ := json.Marshal(user)
 	u.cache.Set(ctx, cacheKey, data, 5*time.Minute) // Set cache expiration for 5 minutes
-
+	log.Println("User from mongo")
 	return user, nil
 }
 

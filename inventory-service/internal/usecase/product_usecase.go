@@ -67,7 +67,7 @@ func (u *ProductUsecase) GetProduct(ctx context.Context, id string) (*model.Prod
 	if err == nil {
 		u.cache.Set(ctx, cacheKey, productJSON, 5*time.Minute) // 1 hour TTL
 	}
-	log.Println("Orders from mongo")
+	log.Println("Prodcuct from mongo")
 	return product, nil
 }
 
