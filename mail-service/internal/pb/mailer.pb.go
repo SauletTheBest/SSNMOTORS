@@ -23,11 +23,9 @@ const (
 
 type SendEmailRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	FromName      string                 `protobuf:"bytes,1,opt,name=from_name,json=fromName,proto3" json:"from_name,omitempty"`
-	FromEmail     string                 `protobuf:"bytes,2,opt,name=from_email,json=fromEmail,proto3" json:"from_email,omitempty"`
-	ToEmail       string                 `protobuf:"bytes,3,opt,name=to_email,json=toEmail,proto3" json:"to_email,omitempty"`
-	Subject       string                 `protobuf:"bytes,4,opt,name=subject,proto3" json:"subject,omitempty"`
-	HtmlBody      string                 `protobuf:"bytes,5,opt,name=html_body,json=htmlBody,proto3" json:"html_body,omitempty"`
+	ToEmail       string                 `protobuf:"bytes,1,opt,name=to_email,json=toEmail,proto3" json:"to_email,omitempty"`
+	Subject       string                 `protobuf:"bytes,2,opt,name=subject,proto3" json:"subject,omitempty"`
+	HtmlBody      string                 `protobuf:"bytes,3,opt,name=html_body,json=htmlBody,proto3" json:"html_body,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -60,20 +58,6 @@ func (x *SendEmailRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use SendEmailRequest.ProtoReflect.Descriptor instead.
 func (*SendEmailRequest) Descriptor() ([]byte, []int) {
 	return file_mailer_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *SendEmailRequest) GetFromName() string {
-	if x != nil {
-		return x.FromName
-	}
-	return ""
-}
-
-func (x *SendEmailRequest) GetFromEmail() string {
-	if x != nil {
-		return x.FromEmail
-	}
-	return ""
 }
 
 func (x *SendEmailRequest) GetToEmail() string {
@@ -153,14 +137,11 @@ var File_mailer_proto protoreflect.FileDescriptor
 
 const file_mailer_proto_rawDesc = "" +
 	"\n" +
-	"\fmailer.proto\x12\x06mailer\"\xa0\x01\n" +
-	"\x10SendEmailRequest\x12\x1b\n" +
-	"\tfrom_name\x18\x01 \x01(\tR\bfromName\x12\x1d\n" +
-	"\n" +
-	"from_email\x18\x02 \x01(\tR\tfromEmail\x12\x19\n" +
-	"\bto_email\x18\x03 \x01(\tR\atoEmail\x12\x18\n" +
-	"\asubject\x18\x04 \x01(\tR\asubject\x12\x1b\n" +
-	"\thtml_body\x18\x05 \x01(\tR\bhtmlBody\"E\n" +
+	"\fmailer.proto\x12\x06mailer\"d\n" +
+	"\x10SendEmailRequest\x12\x19\n" +
+	"\bto_email\x18\x01 \x01(\tR\atoEmail\x12\x18\n" +
+	"\asubject\x18\x02 \x01(\tR\asubject\x12\x1b\n" +
+	"\thtml_body\x18\x03 \x01(\tR\bhtmlBody\"E\n" +
 	"\x11SendEmailResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage2Q\n" +

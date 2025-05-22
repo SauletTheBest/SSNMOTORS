@@ -3,38 +3,39 @@ package config
 import (
 	"log"
 	"os"
-
-	"github.com/joho/godotenv"
+    "github.com/joho/godotenv"
 )
 
 type Config struct {
-	MailerSendAPIKey string
-	ServerPort       string
+	SMTPHost string
+	SMTPPort string
+	SMTPUser string
+	SMTPPass string
 }
 
 func LoadConfig() *Config {
-	// Загружаем .env файл
 	err := godotenv.Load("../.env")
 	if err != nil {
 		log.Println("⚠️ .env файл не найден, используем переменные окружения")
 	}
 
-	config := &Config{
-		MailerSendAPIKey: getEnv("MAILERSEND_API_KEY", ""),
-		ServerPort:       getEnv("SERVER_PORT", "50054"),
+	cfg := &Config{
+		SMTPHost: getEnv("SMTP_HOST", "smtp.gmail.com"),
+		SMTPPort: getEnv("SMTP_PORT", "587"),
+		SMTPUser: os.Getenv("SMTP_USER"),
+		SMTPPass: os.Getenv("SMTP_PASSWORD"),
 	}
 
-	if config.MailerSendAPIKey == "" {
-		log.Fatal("❌ MAILERSEND_API_KEY не задан")
+	if cfg.SMTPUser == "" || cfg.SMTPPass == "" {
+		log.Fatal("SMTP_USER and SMTP_PASSWORD must be set in environment variables")
 	}
 
-	return config
+	return cfg
 }
 
-// Вспомогательная функция с дефолтным значением
-func getEnv(key, fallback string) string {
-	if value, exists := os.LookupEnv(key); exists {
-		return value
+func getEnv(key, defaultValue string) string {
+	if val := os.Getenv(key); val != "" {
+		return val
 	}
-	return fallback
+	return defaultValue
 }
