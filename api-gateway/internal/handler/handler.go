@@ -10,7 +10,7 @@ import (
 	"api-gateway/internal/pb/inventory"
 	"api-gateway/internal/pb/order"
 	"api-gateway/internal/pb/user"
-
+	"api-gateway/internal/pb/mailer"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -21,6 +21,7 @@ type Handler struct {
 	inventoryClient inventory.InventoryServiceClient
 	orderClient     order.OrderServiceClient
 	userClient      user.UserServiceClient
+	mailerClient    mailer.MailerServiceClient
 }
 
 // NewHandler initializes gRPC clients and returns a Handler
@@ -42,12 +43,38 @@ func NewHandler(cfg *config.Config) (*Handler, error) {
 	if err != nil {
 		return nil, err
 	}
+	mailerConn, err := grpc.Dial(cfg.MailerService, grpc.WithTransportCredentials(insecure.NewCredentials()))
+    if err != nil {
+        return nil, err
+    }
 
 	return &Handler{
 		inventoryClient: inventory.NewInventoryServiceClient(inventoryConn),
 		orderClient:     order.NewOrderServiceClient(orderConn),
 		userClient:      user.NewUserServiceClient(userConn),
+		mailerClient:    mailer.NewMailerServiceClient(mailerConn),
 	}, nil
+}
+
+// Mailer Handlers
+// SendEmail handles sending an email
+func (h *Handler) SendEmail(c *gin.Context) {
+    var req mailer.SendEmailRequest
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    resp, err := h.mailerClient.SendEmail(context.Background(), &req)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "status":  resp.Status,
+        "message": resp.Message,
+    })
 }
 
 // Inventory Handlers

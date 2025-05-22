@@ -54,6 +54,8 @@ func NewServer(cfg *config.Config) *Server {
 
 		// User routes
 		protected.GET("/users/:id", h.GetUserProfile)
+		// Mailer routes
+		protected.POST("/email", h.SendEmail)
 	}
 
 	return &Server{

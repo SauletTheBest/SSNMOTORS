@@ -14,6 +14,7 @@ type Config struct {
 	InventoryService string
 	OrderService     string
 	UserService      string
+	MailerService    string
 	JWTSecret        string
 }
 
@@ -32,6 +33,7 @@ func Load() (*Config, error) {
 		InventoryService: getEnvWithDefault("INVENTORY_SERVICE", "localhost:50051"),
 		OrderService:     getEnvWithDefault("ORDER_SERVICE", "localhost:50052"),
 		UserService:      getEnvWithDefault("USER_SERVICE", "localhost:50053"),
+		MailerService:    getEnvWithDefault("MAILER_SERVICE", "localhost:50054"),
 		JWTSecret:        os.Getenv("JWT_SECRET"),
 	}
 
