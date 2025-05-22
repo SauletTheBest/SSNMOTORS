@@ -14,7 +14,6 @@ func main() {
 
 	cfg := config.LoadConfig()
 
-	// Создаём SMTP-сервис
 	smtpService := usecase.NewSMTPService(cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPUser, cfg.SMTPPass)
 
 	mailHandler := handler.NewMailHandler(smtpService)
