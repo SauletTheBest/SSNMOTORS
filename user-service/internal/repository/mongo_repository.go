@@ -5,7 +5,7 @@ import (
 	"context"
 	"errors"
 	"user-service/internal/model"
-
+    "time"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -26,6 +26,10 @@ func NewMongoUserRepository(coll *mongo.Collection) *MongoUserRepository {
         },
     )
     return &MongoUserRepository{coll: coll}
+}
+
+func (r *MongoUserRepository) StartSession(ctx context.Context) (mongo.Session, error) {
+    return r.coll.Database().Client().StartSession()
 }
 
 func (r *MongoUserRepository) Create(ctx context.Context, user *model.User) (string, error) {
@@ -81,4 +85,24 @@ func (r *MongoUserRepository) FindByUsername(ctx context.Context, username strin
         return nil, err
     }
     return &model.User{ID: u.ID.Hex(), Username: u.Username, Password: u.Password, Email: u.Email}, nil
+}
+
+func (r *MongoUserRepository) LogAction(ctx context.Context, sessionCtx mongo.SessionContext, action string, userID string) error {
+    logEntry := bson.M{
+        "action":    action,
+        "user_id":   userID,
+        "timestamp": time.Now(),
+    }
+    _, err := r.coll.Database().Collection("logs").InsertOne(sessionCtx, logEntry)
+    return err
+}
+
+func (r *MongoUserRepository) CreateWithTx(ctx context.Context, sessionCtx mongo.SessionContext, user *model.User) (string, error) {
+    obj := bson.M{"username": user.Username, "password": user.Password, "email": user.Email}
+    res, err := r.coll.InsertOne(sessionCtx, obj)
+    if err != nil {
+        return "", err
+    }
+    id := res.InsertedID.(primitive.ObjectID)
+    return id.Hex(), nil
 }
