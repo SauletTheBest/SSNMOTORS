@@ -1,6 +1,5 @@
 package model
 
-// Чистая доменная модель — без bson-тегов.
 type Product struct {
     ID          string  // auto-generated hex
     Name        string  // required
