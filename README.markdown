@@ -593,13 +593,3 @@ protoc --go_out=. --go-grpc_out=. proto/*.proto
 Ensure code passes tests and follows the project structure.
 
 ---
-
-## 🧠 Author
-
-**IT Student & Developer** — A 2nd-year Computer Science student exploring Go, gRPC, NATS, and distributed systems. This project is a hands-on journey into scalable microservices. 🚀
-
----
-
-## 📜 License
-
-MIT License. See `LICENSE` for details.
