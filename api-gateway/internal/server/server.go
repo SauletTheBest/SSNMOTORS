@@ -1,10 +1,11 @@
 package server
 
 import (
-	"fmt"
 	"api-gateway/config"
 	"api-gateway/internal/handler"
 	"api-gateway/internal/middleware"
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -46,7 +47,7 @@ func NewServer(cfg *config.Config) *Server {
 		protected.DELETE("/inventory/:id", h.DeleteProduct)
 		protected.GET("/inventory", h.ListProducts)
 
-		// Order routes	
+		// Order routes
 		protected.POST("/orders", h.CreateOrder)
 		protected.GET("/orders/:id", h.GetOrder)
 		protected.PUT("/orders/:id/status", h.UpdateOrderStatus)
